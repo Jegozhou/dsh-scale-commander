@@ -1,1 +1,3 @@
-lib/
+# Build output only. Anchored to the package root so it does not match the
+# client source directory `src/client/lib/`.
+/lib/
