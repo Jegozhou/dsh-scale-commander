@@ -12,6 +12,9 @@ import vm from 'node:vm';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const bundle = readFileSync(join(root, 'package', 'lib', 'client.js'), 'utf8');
+// The registration id must equal the package name; read it from the manifest so
+// a rename cannot silently break this contract.
+const packageName = JSON.parse(readFileSync(join(root, 'package', 'package.json'), 'utf8')).name;
 
 process.stdout.write('\nclient\n');
 
@@ -115,7 +118,7 @@ vm.runInContext(bundle, sandbox, { filename: 'client.js' });
 
 test('the bundle registers exactly one factory under the package name', () => {
   equal(registrations.length, 1);
-  equal(registrations[0].id, '@local/dsh-scale-commander');
+  equal(registrations[0].id, packageName);
   assert(typeof loaderFactory === 'function', 'factory is callable');
 });
 

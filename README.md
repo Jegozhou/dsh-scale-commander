@@ -67,16 +67,31 @@ assigned rule overrides an inherited one of the same kind.
 
 ### Install
 
+**From the DSH Plugin Marketplace (recommended).** The repository carries the
+`dsh-plugin` topic, so it is indexed automatically and appears in the
+marketplace's Discover tab:
+
+```
+Settings → Plugins → Discover → search "Scale Commander" → Install
+```
+
+The marketplace clones the repository, runs `npm run build` inside `package/`
+(the build needs no installed dependency — esbuild is invoked as a binary), and
+registers the bundle patch. Restart DeepSeek Harness afterwards.
+
+**From a local checkout**, with the plugin manager tool:
+
 ```sh
 plugin_manager action=install_bundle target=<absolute path>/package
 ```
 
-Or through the Plugin Manager UI. Configuration lives in the bundle row:
+Configuration lives in the bundle row. The package name is now
+`dsh-scale-commander` (unscoped, so it cannot collide on npm):
 
 ```yaml
 - insert:
     - id: scale-commander
-      name: '@local/dsh-scale-commander'
+      name: 'dsh-scale-commander'
       config:
         dataDir: ''              # defaults to <DSH_HOME>/scale-commander
         schedulerEnabled: true
@@ -85,6 +100,27 @@ Or through the Plugin Manager UI. Configuration lives in the bundle row:
 ```
 
 Requires Node 22.5+ for `node:sqlite`. No native modules, no install scripts.
+
+> **After installing, restart DeepSeek Harness.** The browser half is loaded by
+> the `clientModules` service, which caches its per-package scan for the life of
+> the process; a freshly installed package is only picked up at the next start.
+> The Host half — engine, scheduler, HTTP API, agent tools, database — is live
+> immediately.
+
+### Privacy
+
+This plugin sends advertising data to Amazon, because that is what it automates.
+It contacts nothing else. The endpoints and credential handling are declared in
+`package.json` under `disclosure`, so the marketplace card shows them before you
+install:
+
+| | |
+|---|---|
+| Network | `advertising-api.amazon.com` and its EU/FE mirrors, plus `api.amazon.com/auth/o2/token` for the token exchange |
+| Offline mode | Yes — a sandbox account generates its data locally and contacts nothing |
+| Credentials | Amazon LWA client id, client secret, refresh token; AES-256-GCM encrypted at rest in a `0600` file, mirrored into the Harness credential service when mounted, never returned to the browser, never logged |
+| Data at rest | SQLite plus the encrypted sidecar, both inside the plugin data directory |
+| Retention | Local only; nothing is sent to a third-party server |
 
 ### Quick start
 
@@ -167,16 +203,26 @@ PPC 自动化工具有一个普通软件没有的硬性要求：**给人审阅�
 
 ### 安装
 
+**从 DSH 插件市场安装（推荐）。** 仓库已打上 `dsh-plugin` topic，会被市场自动收录，出现在 Discover 标签页里：
+
+```
+Settings → Plugins → Discover → 搜索 "Scale Commander" → Install
+```
+
+市场会克隆仓库、在 `package/` 内执行 `npm run build`（构建不依赖任何已安装包 —— esbuild 以二进制方式调用），然后注册 bundle patch。之后重启 DeepSeek Harness。
+
+**从本地检出安装**，用插件管理器工具：
+
 ```sh
 plugin_manager action=install_bundle target=<绝对路径>/package
 ```
 
-或在插件管理器界面中安装。配置写在 bundle 行里：
+配置写在 bundle 行里。包名已改为 `dsh-scale-commander`（不带 scope，避免 npm 撞名）：
 
 ```yaml
 - insert:
     - id: scale-commander
-      name: '@local/dsh-scale-commander'
+      name: 'dsh-scale-commander'
       config:
         dataDir: ''              # 默认 <DSH_HOME>/scale-commander
         schedulerEnabled: true
@@ -185,6 +231,20 @@ plugin_manager action=install_bundle target=<绝对路径>/package
 ```
 
 需要 Node 22.5+（使用内置 `node:sqlite`）。无原生模块，无安装脚本。
+
+> **安装后请重启 DeepSeek Harness。** 浏览器端由 `clientModules` 服务加载，它把每个包的扫描结果缓存到进程生命周期；新装的包要到下次启动才会被发现。而 Host 端 —— 引擎、调度器、HTTP API、智能体工具、数据库 —— 立即生效。
+
+### 隐私
+
+这个插件会把广告数据发到 Amazon，因为它自动化的就是这件事。除此之外它不联系任何端点。网络端点和凭据处理方式都声明在 `package.json` 的 `disclosure` 字段里，安装前就能在市场卡片上看到：
+
+| | |
+|---|---|
+| 网络 | `advertising-api.amazon.com` 及其 EU/FE 镜像，加 `api.amazon.com/auth/o2/token` 用于令牌交换 |
+| 离线模式 | 支持 —— 沙箱账户本地生成数据，不联系任何端点 |
+| 凭据 | Amazon LWA 的 client id、client secret、refresh token；以 AES-256-GCM 加密存放在 `0600` 文件里，同时镜像到 Harness 凭据服务（若已挂载），永不返回浏览器，永不写日志 |
+| 落地数据 | SQLite 加加密边车文件，都在插件数据目录内 |
+| 保留策略 | 仅本地；不上传任何第三方服务器 |
 
 ### 快速上手
 

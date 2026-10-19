@@ -1,5 +1,5 @@
 {
-  "name": "@local/dsh-scale-commander",
+  "name": "dsh-scale-commander",
   "version": "1.0.0",
   "private": true,
   "description": "Scale Commander — production Amazon PPC automation for DeepSeek Harness: rule engine, intelligent bidding, dayparting, negations, mass campaign builder, attribution analytics and audited rollback.",
@@ -27,6 +27,8 @@
     "node": ">=22.5"
   },
   "dsh": {
+    "plugin": true,
+    "kind": "server",
     "bundle": {
       "patch": "./cordis.patch.yml"
     },
@@ -40,5 +42,52 @@
         "@deepseek-ai/dsh-client-ui-primitives"
       ]
     }
+  },
+  "main": "./lib/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Jegozhou/dsh-scale-commander.git"
+  },
+  "homepage": "https://github.com/Jegozhou/dsh-scale-commander",
+  "bugs": "https://github.com/Jegozhou/dsh-scale-commander/issues",
+  "keywords": [
+    "dsh-plugin",
+    "deepseek-harness",
+    "amazon-ppc",
+    "amazon-advertising",
+    "ppc-automation",
+    "cordis"
+  ],
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "disclosure": {
+    "cloud": true,
+    "network": [
+      "https://advertising-api.amazon.com",
+      "https://advertising-api-eu.amazon.com",
+      "https://advertising-api-fe.amazon.com",
+      "https://api.amazon.com/auth/o2/token"
+    ],
+    "offlineMode": true,
+    "apiKeys": [
+      {
+        "env": null,
+        "storage": "file-0600-encrypted-aes-256-gcm",
+        "logged": false,
+        "note": "Amazon LWA client id, client secret and refresh token; encrypted at rest, never returned to the browser, mirrored into the Harness credential service when mounted."
+      }
+    ],
+    "permissions": [
+      "network: Amazon Advertising API and LWA token endpoint only",
+      "filesystem: the plugin data directory (<DSH_HOME>/scale-commander by default) for SQLite and the encrypted secret sidecar",
+      "process: node:sqlite and node:crypto from the Node standard library"
+    ],
+    "jurisdiction": [
+      "GDPR",
+      "CCPA",
+      "PIPL"
+    ],
+    "retention": "server"
   }
 }

@@ -8,14 +8,46 @@
  *    page's own module table.
  *
  * esbuild is invoked as a binary, so the build needs no installed dependency.
+ *
+ * This script is runnable from three places: the repository root, the package
+ * directory, or a fresh clone installed by the plugin marketplace (which runs
+ * `npm run build` from the package root). It locates the package by walking up
+ * from its own URL until it finds a `package.json` declaring `dsh.bundle`.
  */
 import { execFileSync } from 'node:child_process';
-import { cpSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const root = dirname(dirname(fileURLToPath(import.meta.url)));
-const pkg = join(root, 'package');
+/**
+ * Locate the plugin package, which is either this script's own directory, or a
+ * `package/` subdirectory of an ancestor. Both layouts exist in practice: the
+ * repository keeps the plugin under `package/`, while a marketplace install
+ * copies that directory out on its own and runs this script from inside it.
+ * @param {string} start
+ * @returns {string}
+ */
+function locatePackage(start) {
+  let dir = start;
+  while (true) {
+    for (const candidate of [dir, join(dir, 'package')]) {
+      const manifest = join(candidate, 'package.json');
+      if (!existsSync(manifest)) continue;
+      try {
+        const parsed = JSON.parse(readFileSync(manifest, 'utf8'));
+        if (parsed?.dsh?.bundle?.patch !== undefined) return candidate;
+      } catch {
+        /* an unreadable manifest is not the package we are looking for */
+      }
+    }
+    const parent = dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  throw new Error('build: no package.json declaring dsh.bundle.patch was found above ' + start);
+}
+
+const pkg = locatePackage(dirname(fileURLToPath(import.meta.url)));
 const lib = join(pkg, 'lib');
 
 rmSync(lib, { recursive: true, force: true });
@@ -67,8 +99,11 @@ rmSync(raw, { force: true });
 
 // The loader factory receives `require`, and the IIFE resolves React through it,
 // so the page's own module table supplies React with no duplicate copy.
+// The registration id must equal the package name: the loader addresses the
+// browser module by it, and the graph row is keyed on the same string.
+const manifest = JSON.parse(readFileSync(join(pkg, 'package.json'), 'utf8'));
 const wrapped = `window.__ModuleLoader__.load({
-  id: "@local/dsh-scale-commander",
+  id: ${JSON.stringify(manifest.name)},
   factory(require) {
     ${bundle}
     return __scaleCommander;
