@@ -1,0 +1,21 @@
+# Scale Commander: Amazon PPC automation for DeepSeek Harness.
+# One Host row owns storage, the Amazon Ads client, the rule engine, the
+# scheduler, the HTTP API the browser half calls, and the agent tools.
+# The browser half is a dsh.client module registered into `main` and
+# `sidebar.panellist`, so the page renders inside the Harness shell.
+- insert:
+    - id: scale-commander
+      name: '@local/dsh-scale-commander'
+      config:
+        dataDir: ''
+        provider: auto
+        defaultMarketplace: ATVPDKIKX0DER
+        currency: USD
+        timezone: America/Los_Angeles
+        dryRun: true
+        schedulerEnabled: true
+        schedulerTickSeconds: 60
+        historyDays: 400
+        maxPreviewRows: 2000
+        requestTimeoutMs: 45000
+        tokenEncryptionKey: ''

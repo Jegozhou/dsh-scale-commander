@@ -1,0 +1,13 @@
+{
+  "name": "dsh-scale-commander",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Scale Commander — Amazon PPC automation for DeepSeek Harness: 11 algorithms, intelligent bidding, dayparting, negatives, mass campaigns, attribution, audited rollback.",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node scripts/test.mjs"
+  },
+  "engines": { "node": ">=22.5" }
+}
